@@ -2,7 +2,7 @@ package com.why.message.contract;
 
 public interface ISyncBarrierCallback {
 
-		void onSyncBarrier(int level);
+		void onSyncBarrier(long level);
 
-		void onRemoveSyncBarrier(int level);
+		void onRemoveSyncBarrier(long level);
 	}
