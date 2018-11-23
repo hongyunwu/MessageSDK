@@ -32,7 +32,7 @@ public class Message {
 	boolean used = false;
 
 	//消息的优先级
-	public int level;
+	public long level;
 
 	//消息类型 据FLAG区分为同步消息和异步消息
 	int flag;
