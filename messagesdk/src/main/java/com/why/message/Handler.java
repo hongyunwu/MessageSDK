@@ -176,12 +176,12 @@ public class Handler implements IAccept,ISend {
 
 	ISyncBarrierCallback mSyncBarrierCallback = new ISyncBarrierCallback() {
 		@Override
-		public void onSyncBarrier(int level) {
+		public void onSyncBarrier(long level) {
 			Log.d(TAG, "onSyncBarrier: "+level);
 		}
 
 		@Override
-		public void onRemoveSyncBarrier(int level) {
+		public void onRemoveSyncBarrier(long level) {
 			Log.d(TAG, "onRemoveSyncBarrier: "+level);
 		}
 	};
