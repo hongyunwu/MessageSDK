@@ -2,7 +2,7 @@
 消息执行机制，模仿的Handler+Looper+MessageQueue方式，把消息执行顺序由when转换为level优先级来可阻塞式执行。
 
 ```
-HandlerThread handlerThread = new HandlerThread(){
+HandlerThread posterThread = new HandlerThread(){
 			@Override
 			public boolean accept(Message message) {
 				Log.i(TAG, "accept: "+message);
@@ -14,8 +14,8 @@ HandlerThread handlerThread = new HandlerThread(){
 				super.onSendFailed(message, reasonCode);
 			}
 		};
-		handlerThread.start();
-		handlerThread.getThreadHandler().postSyncBarrier();
+		posterThread.start();
+		posterThread.getThreadHandler().postSyncBarrier();
 		for (int i = 0; i < 100; i++) {
 			Message message = Message.obtain();
 			message.what = i%3;
@@ -23,9 +23,9 @@ HandlerThread handlerThread = new HandlerThread(){
 			if (i%9==0){
 				message.setSynchronous(false);
 			}
-			handlerThread.getThreadHandler().sendMessageAtLevel(message,i%5);
+			posterThread.getThreadHandler().sendMessageAtLevel(message,i%5);
 		}
 
 		SystemClock.sleep(5000);
-		handlerThread.getThreadHandler().removeSyncBarrier();
+		posterThread.getThreadHandler().removeSyncBarrier();
 ```

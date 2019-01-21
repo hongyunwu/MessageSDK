@@ -5,21 +5,21 @@ package com.why.message;
  * on 2018/11/20.
  */
 
-public class HandlerThread extends Thread implements Handler.HandlerCallback{
+public class PosterThread extends Thread implements Poster.HandlerCallback{
 
-	private Looper mLooper;
-	private Handler mHandler;
+	private Recycler mRecycler;
+	private Poster mPoster;
 
 	@Override
 	public void run() {
 		super.run();
-		Looper.prepare();
+		Recycler.prepare();
 		synchronized (this){
-			mLooper = Looper.myLooper();
+			mRecycler = Recycler.myLooper();
 			notifyAll();
 		}
 		onLooperPrepared();
-		Looper.loop();
+		Recycler.loop();
 
 
 	}
@@ -32,12 +32,12 @@ public class HandlerThread extends Thread implements Handler.HandlerCallback{
 	 * 阻塞式的调用
 	 * @return
 	 */
-	public Looper getLooper(){
+	public Recycler getLooper(){
 		if (!isAlive()){
 			return null;
 		}
 		synchronized (this) {
-			while (isAlive()&&mLooper==null){
+			while (isAlive()&& mRecycler ==null){
 				try {
 					wait();
 				} catch (InterruptedException e) {
@@ -46,27 +46,27 @@ public class HandlerThread extends Thread implements Handler.HandlerCallback{
 
 			}
 		}
-		return mLooper;
+		return mRecycler;
 	}
 
 	/**
 	 * 阻塞式调用
 	 * @return
 	 */
-	public Handler getThreadHandler(){
-		if (mHandler==null){
-			mHandler = new Handler(getLooper(),this);
+	public Poster getThreadHandler(){
+		if (mPoster ==null){
+			mPoster = new Poster(getLooper(),this);
 		}
-		return mHandler;
+		return mPoster;
 	}
 
 	public boolean quit(boolean safely){
-		Looper looper = getLooper();
-		if (looper!=null){
+		Recycler recycler = getLooper();
+		if (recycler !=null){
 			if (safely){
-				looper.quitSafely();
+				recycler.quitSafely();
 			}else {
-				looper.quit();
+				recycler.quit();
 			}
 			return true;
 		}

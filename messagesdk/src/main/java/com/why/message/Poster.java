@@ -15,11 +15,11 @@ import com.why.message.contract.IdleHandler;
  * on 2018/11/16.
  */
 
-public class Handler implements IAccept,ISend {
+public class Poster implements IAccept,ISend {
 
-	private static final String TAG = "Handler";
+	private static final String TAG = "Poster";
 	//消息轮询器
-	Looper mLooper;
+	Recycler mRecycler;
 
 	//消息队列
 	MessageQueue mQueue;
@@ -29,29 +29,29 @@ public class Handler implements IAccept,ISend {
 
 	/***************************构造方法***************************/
 
-	public Handler(){
+	public Poster(){
 		this(null,null);
 	}
 
-	public Handler( HandlerCallback callback){
+	public Poster(HandlerCallback callback){
 		this(null,callback);
 	}
 
-	public Handler(Looper looper){
-		this(looper,null);
+	public Poster(Recycler recycler){
+		this(recycler,null);
 	}
 
-	public Handler(@Nullable Looper looper, @Nullable HandlerCallback callback){
+	public Poster(@Nullable Recycler recycler, @Nullable HandlerCallback callback){
 
-		if (looper==null){
-			looper = Looper.myLooper();
+		if (recycler ==null){
+			recycler = Recycler.myLooper();
 		}
-		if (looper==null){
+		if (recycler ==null){
 			throw new RuntimeException(
-					"Can't create handler inside thread that has not called Looper.prepare()");
+					"Can't create handler inside thread that has not called Recycler.prepare()");
 		}
-		this.mLooper = looper;
-		this.mQueue = mLooper.mQueue;
+		this.mRecycler = recycler;
+		this.mQueue = mRecycler.mQueue;
 		this.mCallback = callback;
 	}
 

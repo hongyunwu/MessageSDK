@@ -279,15 +279,15 @@ public class MessageQueue {
 		}
 	}
 
-	public boolean hasMessages(Handler handler, int what, Object cookie) {
+	public boolean hasMessages(Poster poster, int what, Object cookie) {
 
-		if (handler == null) {
+		if (poster == null) {
 			return false;
 		}
 		synchronized (mWRLock) {
 			Message local = mMessages;
 			while (local != null) {
-				if (local.target == handler && local.what == what && local.cookie == cookie) {
+				if (local.target == poster && local.what == what && local.cookie == cookie) {
 					return true;
 				}
 				local = local.next;
@@ -296,15 +296,15 @@ public class MessageQueue {
 		return false;
 	}
 
-	public boolean hasMessages(Handler handler, Runnable runnable) {
+	public boolean hasMessages(Poster poster, Runnable runnable) {
 
-		if (handler == null) {
+		if (poster == null) {
 			return false;
 		}
 		synchronized (mWRLock) {
 			Message local = mMessages;
 			while (local != null) {
-				if (local.target == handler && local.callback == runnable) {
+				if (local.target == poster && local.callback == runnable) {
 					return true;
 				}
 				local = local.next;
@@ -313,14 +313,14 @@ public class MessageQueue {
 		return false;
 	}
 
-	public void removeMessages(Handler handler, int what, Object cookie) {
+	public void removeMessages(Poster poster, int what, Object cookie) {
 
-		if (handler == null) {
+		if (poster == null) {
 			return;
 		}
 		synchronized (mWRLock) {
 			Message local = mMessages;
-			while (local != null && local.target == handler && local.what == what
+			while (local != null && local.target == poster && local.what == what
 					&& (local.cookie == cookie)) {
 				Message n = local.next;
 				mMessages = n;
@@ -330,7 +330,7 @@ public class MessageQueue {
 			while (local != null) {
 				Message n = local.next;
 				if (n != null) {
-					if (n.target == handler && n.what == what
+					if (n.target == poster && n.what == what
 							&& (n.cookie == cookie)) {
 						Message nn = n.next;
 						n.recycle();
@@ -343,13 +343,13 @@ public class MessageQueue {
 		}
 	}
 
-	public void removeRunnables(Handler handler, Runnable runnable) {
-		if (handler == null) {
+	public void removeRunnables(Poster poster, Runnable runnable) {
+		if (poster == null) {
 			return;
 		}
 		synchronized (mWRLock) {
 			Message local = mMessages;
-			while (local != null && local.target == handler && local.callback == runnable) {
+			while (local != null && local.target == poster && local.callback == runnable) {
 				Message n = local.next;
 				mMessages = n;
 				local.recycle();
@@ -358,7 +358,7 @@ public class MessageQueue {
 			while (local != null) {
 				Message n = local.next;
 				if (n != null) {
-					if (n.target == handler && n.callback == runnable) {
+					if (n.target == poster && n.callback == runnable) {
 						Message nn = n.next;
 						n.recycle();
 						local.next = nn;

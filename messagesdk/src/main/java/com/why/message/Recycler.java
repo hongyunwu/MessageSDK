@@ -7,27 +7,27 @@ import android.util.Log;
  * on 2018/11/16.
  * 消息的轮询者
  */
- public class Looper {
+ public class Recycler {
 
-	private static final String TAG = "Looper";
+	private static final String TAG = "Recycler";
  	//当前looper轮询的队列
 	final MessageQueue mQueue;
 
 	//当前looper所在线程
 	public Thread mThread;
 
-	static final ThreadLocal<Looper> sThreadLocal= new ThreadLocal<>();
+	static final ThreadLocal<Recycler> sThreadLocal= new ThreadLocal<>();
 
-	private Looper(){
+	private Recycler(){
 		mQueue = new MessageQueue();
 		mThread = Thread.currentThread();
 	}
 	public static void loop(){
-		Looper looper = Looper.myLooper();
-		if (looper==null){
-			throw new RuntimeException("No Looper; Looper.prepare() wasn't called on this thread.");
+		Recycler recycler = Recycler.myLooper();
+		if (recycler ==null){
+			throw new RuntimeException("No Recycler; Recycler.prepare() wasn't called on this thread.");
 		}
-		MessageQueue mQueue = looper.mQueue;
+		MessageQueue mQueue = recycler.mQueue;
 		for (;;){
 			Message message = mQueue.next();
 			if (message==null){
@@ -39,7 +39,7 @@ import android.util.Log;
 		Log.w(TAG, "loop: 退出------");
 	}
 
-	public static Looper myLooper() {
+	public static Recycler myLooper() {
 		return sThreadLocal.get();
 	}
 
@@ -49,9 +49,9 @@ import android.util.Log;
 
 	public static void prepare() {
 		if (sThreadLocal.get() != null) {
-			throw new RuntimeException("Only one Looper may be created per thread");
+			throw new RuntimeException("Only one Recycler may be created per thread");
 		}
-		sThreadLocal.set(new Looper());
+		sThreadLocal.set(new Recycler());
 	}
 
 	boolean isCurrentThread(){

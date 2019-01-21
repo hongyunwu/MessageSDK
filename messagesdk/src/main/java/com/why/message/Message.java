@@ -20,7 +20,7 @@ public class Message {
 	public Object cookie;
 
 	//消息的处理者
-	Handler target;
+	Poster target;
 
 	//消息携带数据(K-V)
 	Bundle data;
