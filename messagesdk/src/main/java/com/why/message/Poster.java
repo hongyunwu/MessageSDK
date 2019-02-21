@@ -57,64 +57,64 @@ public class Poster implements IAccept,ISend {
 
 	/***************************接收方*****************************/
 	@Override
-	public void accept(Message message) {
+	public void accept(Carrier carrier) {
 		//可在此接收并处理消息
 	}
 
 	/**************************发送方*******************************/
 	/**
 	 *发送失败回调，应予以重写
-	 * @param message 发送失败的消息
+	 * @param carrier 发送失败的消息
 	 * @param reasonCode 发送失败的原因 1.消息为空，2.消息非法-无target，3.消息已被使用，4.队列已退出
 	 */
 	@CallSuper
-	public void onSendFailed(Message message, int reasonCode) {
+	public void onSendFailed(Carrier carrier, int reasonCode) {
 		if (mCallback!=null){
-			mCallback.onSendFailed(message,reasonCode);
+			mCallback.onSendFailed(carrier,reasonCode);
 		}
 	}
 
 	@Override
-	public final void sendMessage(Message message) {
-		sendMessageAtLevel(message,1);
+	public final void sendMessage(Carrier carrier) {
+		sendMessageAtLevel(carrier,1);
 	}
 
 	@Override
-	public final void sendMessageAtLevel(Message message, int level) {
+	public final void sendMessageAtLevel(Carrier carrier, int level) {
 		if (level<1){
 			level = 1;
 		}
-		message.level = level;
-		enqueueMessage(message);
+		carrier.level = level;
+		enqueueMessage(carrier);
 	}
 
 
 	@Override
 	public final void sendEmptyMessage(int what) {
-		Message message = Message.obtain();
-		message.what = what;
-		sendMessageAtLevel(message,1);
+		Carrier carrier = Carrier.obtain();
+		carrier.what = what;
+		sendMessageAtLevel(carrier,1);
 	}
 
 	@Override
 	public final void sendEmptyMessageAtLevel(int what, int level) {
-		Message message = Message.obtain();
-		message.what = what;
-		sendMessageAtLevel(message,level);
+		Carrier carrier = Carrier.obtain();
+		carrier.what = what;
+		sendMessageAtLevel(carrier,level);
 	}
 
 	@Override
 	public final void post(Runnable runnable) {
-		Message message = Message.obtain();
-		message.callback = runnable;
-		sendMessageAtLevel(message,1);
+		Carrier carrier = Carrier.obtain();
+		carrier.callback = runnable;
+		sendMessageAtLevel(carrier,1);
 	}
 
 	@Override
 	public final void postAtLevel(Runnable runnable, int level) {
-		Message message = Message.obtain();
-		message.callback = runnable;
-		sendMessageAtLevel(message,level);
+		Carrier carrier = Carrier.obtain();
+		carrier.callback = runnable;
+		sendMessageAtLevel(carrier,level);
 	}
 
 	public final void removeMessages(int what){
@@ -187,13 +187,13 @@ public class Poster implements IAccept,ISend {
 	};
 
 	/****************************私有方法***************************/
-	private void enqueueMessage(Message message) {
+	private void enqueueMessage(Carrier carrier) {
 		//所有关于此消息的细节都需在此前
-		message.target = this;
-		int result = mQueue.enqueueMessage(message);
+		carrier.target = this;
+		int result = mQueue.enqueueMessage(carrier);
 		if (result!=0){
 			Log.e(TAG, "enqueueMessage: 消息投递失败");
-			onSendFailed(message,result);
+			onSendFailed(carrier,result);
 		}
 	}
 
@@ -202,24 +202,24 @@ public class Poster implements IAccept,ISend {
 	/**
 	 * 分发消息
 	 *
-	 * @param message 被分发的消息体
+	 * @param carrier 被分发的消息体
 	 */
-	void dispatchMessage(Message message){
-		if (message.callback!=null){
-			message.callback.run();
+	void dispatchMessage(Carrier carrier){
+		if (carrier.callback!=null){
+			carrier.callback.run();
 		}else {
-			if (mCallback!=null&&mCallback.accept(message)){
+			if (mCallback!=null&&mCallback.accept(carrier)){
 				return;
 			}
-			accept(message);
+			accept(carrier);
 		}
 	}
 
 
 	/****************************接口******************************/
 	public interface HandlerCallback{
-		boolean accept(Message message);
-		void onSendFailed(Message message,int reasonCode);
+		boolean accept(Carrier carrier);
+		void onSendFailed(Carrier carrier, int reasonCode);
 	}
 
 }

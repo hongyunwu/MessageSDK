@@ -18,7 +18,7 @@ public class MessageQueue {
 
 	private static final String TAG = "MessageQueue";
 	//消息队列--->单链表
-	Message mMessages;
+	Carrier mMessages;
 
 	//队列操作锁
 	Object mWRLock = new Object();
@@ -40,37 +40,37 @@ public class MessageQueue {
 	MessageQueue() {
 	}
 
-	public int enqueueMessage(Message message) {
+	public int enqueueMessage(Carrier carrier) {
 		/**
 		 * 1.消息是否有target
 		 * 2.消息是否已经循环过
 		 * 3.检查队列是否还存在
 		 * 4.唤醒消息队列notify
 		 */
-		int result = checkValidity(message);
+		int result = checkValidity(carrier);
 		if (result !=0) return result;
-		Log.d(TAG, "enqueueMessage: "+message);
+		Log.d(TAG, "enqueueMessage: "+ carrier);
 		synchronized (mWRLock) {
-			message.when = SystemClock.uptimeMillis();
+			carrier.when = SystemClock.uptimeMillis();
 			//根据level来决定当前消息所在位置
-			Message local = mMessages;
-			if (local == null || local.level > message.level) {
-				message.next = local;
-				mMessages = message;
+			Carrier local = mMessages;
+			if (local == null || local.level > carrier.level) {
+				carrier.next = local;
+				mMessages = carrier;
 			} else {
-				Message prev;
+				Carrier prev;
 				for (; ; ) {
 					prev = local;
 					local = local.next;
-					if (local == null || local.level > message.level) {
+					if (local == null || local.level > carrier.level) {
 
 						break;
 					}
 				}
-				prev.next = message;
-				message.next = local;
+				prev.next = carrier;
+				carrier.next = local;
 			}
-			message.makeInUse(true);
+			carrier.makeInUse(true);
 		}
 		//唤醒队列
 		if (mBlocked){
@@ -85,16 +85,16 @@ public class MessageQueue {
 		return result;
 	}
 
-	int checkValidity(Message message) {
-		if (message == null) {
+	int checkValidity(Carrier carrier) {
+		if (carrier == null) {
 			Log.w(TAG, "enqueueMessage: 入队消息为空");
 			return 1;
 		}
-		if (message.target == null) {
+		if (carrier.target == null) {
 			Log.w(TAG, "enqueueMessage: 非法消息,target=null");
 			return 2;
 		}
-		if (message.isInUse()) {
+		if (carrier.isInUse()) {
 			Log.w(TAG, "enqueueMessage: 当前消息正处于使用中，无法投送");
 			return 3;
 		}
@@ -105,7 +105,7 @@ public class MessageQueue {
 		return 0;
 	}
 
-	public Message next() {
+	public Carrier next() {
 
 		for (; ; ) {
 			if (mQuitting){
@@ -126,31 +126,34 @@ public class MessageQueue {
 				e.printStackTrace();
 			}
 			synchronized (mWRLock) {
-				Message message = mMessages;
-				Message prev = null;
-				if (message != null && message.isSyncBarrier()) {
+				Carrier carrier = mMessages;
+				Carrier prev = null;
+				if (carrier != null && carrier.isSyncBarrier()) {
 					do {
-						prev = message;
-						message = message.next;
-					} while (message != null && !message.isAsynchronous());
+						prev = carrier;
+						carrier = carrier.next;
+					} while (carrier != null && !carrier.isAsynchronous());
 				}
 				//取出当前msg处理
-				if (message != null) {
+				if (carrier != null) {
 					if (prev != null) {
-						prev.next = message.next;
+						prev.next = carrier.next;
 					} else {
-						mMessages = message.next;
+						mMessages = carrier.next;
 					}
-					message.next = null;
-					message.makeInUse(true);
+					carrier.next = null;
+					carrier.makeInUse(true);
 					mBlocked = false;
-					return message;
+					return carrier;
 				} else {
-					synchronized (mIdleHandlers) {
-						for (IdleHandler idleHandler : mIdleHandlers) {
-							idleHandler.queueIdle();
+					if(size()==0){
+						synchronized (mIdleHandlers) {
+							for (IdleHandler idleHandler : mIdleHandlers) {
+								idleHandler.queueIdle();
+							}
 						}
 					}
+
 					if (mQuitting){
 						Log.i(TAG, "next: 安全退出...");
 						return null;
@@ -187,10 +190,10 @@ public class MessageQueue {
 		 * 2.添加level级的同步栅栏
 		 */
 		synchronized (mWRLock){
-			Message local = mMessages;
+			Carrier local = mMessages;
 			//先去掉链头
 			while (local!=null&&local.target==null){
-				Message n = local.next;
+				Carrier n = local.next;
 				mMessages = n;
 				if (callback!=null){
 					callback.onRemoveSyncBarrier(local.level);
@@ -199,10 +202,10 @@ public class MessageQueue {
 				local = n;
 			}
 			while (local!=null){
-				Message n = local.next;
+				Carrier n = local.next;
 				if (n!=null){
 					if (n.target==null){
-						Message nn = n.next;
+						Carrier nn = n.next;
 						if (callback!=null){
 							callback.onRemoveSyncBarrier(n.level);
 						}
@@ -214,7 +217,7 @@ public class MessageQueue {
 				local = n;
 			}
 			local = mMessages;
-			Message syncBarrier = Message.obtain();
+			Carrier syncBarrier = Carrier.obtain();
 			syncBarrier.level = level;
 			syncBarrier.when = SystemClock.uptimeMillis();
 			syncBarrier.makeInUse(true);
@@ -222,7 +225,7 @@ public class MessageQueue {
 				syncBarrier.next = local;
 				mMessages = syncBarrier;
 			} else {
-				Message prev;
+				Carrier prev;
 				for (; ; ) {
 					prev = local;
 					local = local.next;
@@ -241,10 +244,10 @@ public class MessageQueue {
 
 	public void removeSyncBarrier(ISyncBarrierCallback callback) {
 		synchronized (mWRLock){
-			Message local = mMessages;
+			Carrier local = mMessages;
 			//先去掉链头
 			while (local!=null&&local.target==null){
-				Message n = local.next;
+				Carrier n = local.next;
 				mMessages = n;
 				if (callback!=null){
 					callback.onRemoveSyncBarrier(local.level);
@@ -253,10 +256,10 @@ public class MessageQueue {
 				local = n;
 			}
 			while (local!=null){
-				Message n = local.next;
+				Carrier n = local.next;
 				if (n!=null){
 					if (n.target==null){
-						Message nn = n.next;
+						Carrier nn = n.next;
 						if (callback!=null){
 							callback.onRemoveSyncBarrier(n.level);
 						}
@@ -285,7 +288,7 @@ public class MessageQueue {
 			return false;
 		}
 		synchronized (mWRLock) {
-			Message local = mMessages;
+			Carrier local = mMessages;
 			while (local != null) {
 				if (local.target == poster && local.what == what && local.cookie == cookie) {
 					return true;
@@ -302,7 +305,7 @@ public class MessageQueue {
 			return false;
 		}
 		synchronized (mWRLock) {
-			Message local = mMessages;
+			Carrier local = mMessages;
 			while (local != null) {
 				if (local.target == poster && local.callback == runnable) {
 					return true;
@@ -313,26 +316,39 @@ public class MessageQueue {
 		return false;
 	}
 
+
+	public int size() {
+		int size = 0;
+		synchronized (mWRLock) {
+			Carrier local = mMessages;
+			while (local != null) {
+				size++;
+				local = local.next;
+			}
+		}
+		return size;
+	}
+
 	public void removeMessages(Poster poster, int what, Object cookie) {
 
 		if (poster == null) {
 			return;
 		}
 		synchronized (mWRLock) {
-			Message local = mMessages;
+			Carrier local = mMessages;
 			while (local != null && local.target == poster && local.what == what
 					&& (local.cookie == cookie)) {
-				Message n = local.next;
+				Carrier n = local.next;
 				mMessages = n;
 				local.recycle();
 				local = n;
 			}
 			while (local != null) {
-				Message n = local.next;
+				Carrier n = local.next;
 				if (n != null) {
 					if (n.target == poster && n.what == what
 							&& (n.cookie == cookie)) {
-						Message nn = n.next;
+						Carrier nn = n.next;
 						n.recycle();
 						local.next = nn;
 						continue;
@@ -348,18 +364,18 @@ public class MessageQueue {
 			return;
 		}
 		synchronized (mWRLock) {
-			Message local = mMessages;
+			Carrier local = mMessages;
 			while (local != null && local.target == poster && local.callback == runnable) {
-				Message n = local.next;
+				Carrier n = local.next;
 				mMessages = n;
 				local.recycle();
 				local = n;
 			}
 			while (local != null) {
-				Message n = local.next;
+				Carrier n = local.next;
 				if (n != null) {
 					if (n.target == poster && n.callback == runnable) {
-						Message nn = n.next;
+						Carrier nn = n.next;
 						n.recycle();
 						local.next = nn;
 						continue;
@@ -390,11 +406,11 @@ public class MessageQueue {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		Message message = mMessages;
+		Carrier carrier = mMessages;
 		synchronized (mWRLock) {
-			while (message!=null){
-				sb.append(message);
-				message = message.next;
+			while (carrier !=null){
+				sb.append(carrier);
+				carrier = carrier.next;
 			}
 		}
 		return sb.toString();

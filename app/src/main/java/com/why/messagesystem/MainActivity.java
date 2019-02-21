@@ -5,8 +5,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.why.message.Carrier;
 import com.why.message.PosterThread;
-import com.why.message.Message;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,26 +23,26 @@ public class MainActivity extends AppCompatActivity {
 		super.onResume();
 		PosterThread posterThread = new PosterThread(){
 			@Override
-			public boolean accept(Message message) {
+			public boolean accept(Carrier message) {
 				Log.i(TAG, "accept: "+message);
 				return false;
 			}
 
 			@Override
-			public void onSendFailed(Message message, int reasonCode) {
+			public void onSendFailed(Carrier message, int reasonCode) {
 				super.onSendFailed(message, reasonCode);
 			}
 		};
 		posterThread.start();
 		posterThread.getThreadHandler().postSyncBarrier();
 		for (int i = 0; i < 100; i++) {
-			Message message = Message.obtain();
-			message.what = i%3;
-			message.cookie = i;
+			Carrier carrier = Carrier.obtain();
+			carrier.what = i%3;
+			carrier.cookie = i;
 			if (i%9==0){
-				message.setSynchronous(false);
+				carrier.setSynchronous(false);
 			}
-			posterThread.getThreadHandler().sendMessageAtLevel(message,i%5);
+			posterThread.getThreadHandler().sendMessageAtLevel(carrier,i%5);
 		}
 
 		SystemClock.sleep(5000);

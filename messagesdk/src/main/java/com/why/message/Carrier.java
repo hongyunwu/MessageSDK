@@ -11,10 +11,10 @@ import java.util.ArrayList;
  * 消息
  */
 
-public class Message {
+public class Carrier {
 
 	//链表中下条消息
-	Message next;
+	Carrier next;
 
 	//消息携带数据
 	public Object cookie;
@@ -51,7 +51,7 @@ public class Message {
 
 	static MessagePool mPool = new MessagePool();
 
-	Message(){
+	Carrier(){
 		init();
 	}
 
@@ -85,9 +85,9 @@ public class Message {
 	 *
 	 * @return
 	 */
-	public static Message obtain() {
-		Message message = mPool.get();
-		return message;
+	public static Carrier obtain() {
+		Carrier carrier = mPool.get();
+		return carrier;
 	}
 
 
@@ -118,28 +118,28 @@ public class Message {
 	}
 
 	static class MessagePool{
-		private ArrayList<Message> messages = new ArrayList<>();
+		private ArrayList<Carrier> carriers = new ArrayList<>();
 		Object mPoolLock = new Object();
-		public Message get() {
+		public Carrier get() {
 			synchronized (mPoolLock){
-				if (messages.size()>0){
-					return messages.remove(0);
+				if (carriers.size()>0){
+					return carriers.remove(0);
 				}
 			}
-			return new Message();
+			return new Carrier();
 		}
 
-		public void put(Message message) {
+		public void put(Carrier carrier) {
 			synchronized (mPoolLock){
-				if (message!=null)
-					messages.add(message);
+				if (carrier !=null)
+					carriers.add(carrier);
 			}
 		}
 	}
 
 	@Override
 	public String toString() {
-		return "Message{" +
+		return "Carrier{" +
 				"cookie=" + cookie +
 				", target=" + target +
 				", data=" + data +

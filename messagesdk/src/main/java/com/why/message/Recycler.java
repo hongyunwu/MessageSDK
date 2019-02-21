@@ -29,12 +29,12 @@ import android.util.Log;
 		}
 		MessageQueue mQueue = recycler.mQueue;
 		for (;;){
-			Message message = mQueue.next();
-			if (message==null){
+			Carrier carrier = mQueue.next();
+			if (carrier ==null){
 				break;
 			}
-			message.target.dispatchMessage(message);
-			message.recycle();
+			carrier.target.dispatchMessage(carrier);
+			carrier.recycle();
 		}
 		Log.w(TAG, "loop: 退出------");
 	}

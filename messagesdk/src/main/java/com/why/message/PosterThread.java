@@ -74,12 +74,12 @@ public class PosterThread extends Thread implements Poster.HandlerCallback{
 	}
 
 	@Override
-	public boolean accept(Message message) {
+	public boolean accept(Carrier carrier) {
 		return false;
 	}
 
 	@Override
-	public void onSendFailed(Message message, int reasonCode) {
+	public void onSendFailed(Carrier carrier, int reasonCode) {
 
 	}
 }

@@ -4,26 +4,26 @@
 ```
 HandlerThread posterThread = new HandlerThread(){
 			@Override
-			public boolean accept(Message message) {
-				Log.i(TAG, "accept: "+message);
+			public boolean accept(Message carrier) {
+				Log.i(TAG, "accept: "+carrier);
 				return false;
 			}
 
 			@Override
-			public void onSendFailed(Message message, int reasonCode) {
-				super.onSendFailed(message, reasonCode);
+			public void onSendFailed(Message carrier, int reasonCode) {
+				super.onSendFailed(carrier, reasonCode);
 			}
 		};
 		posterThread.start();
 		posterThread.getThreadHandler().postSyncBarrier();
 		for (int i = 0; i < 100; i++) {
-			Message message = Message.obtain();
-			message.what = i%3;
-			message.cookie = i;
+			Message carrier = Message.obtain();
+			carrier.what = i%3;
+			carrier.cookie = i;
 			if (i%9==0){
-				message.setSynchronous(false);
+				carrier.setSynchronous(false);
 			}
-			posterThread.getThreadHandler().sendMessageAtLevel(message,i%5);
+			posterThread.getThreadHandler().sendMessageAtLevel(carrier,i%5);
 		}
 
 		SystemClock.sleep(5000);

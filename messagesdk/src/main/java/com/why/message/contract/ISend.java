@@ -1,6 +1,6 @@
 package com.why.message.contract;
 
-import com.why.message.Message;
+import com.why.message.Carrier;
 
 /**
  * Created by android_wuhongyun@163.com
@@ -12,16 +12,16 @@ public interface ISend {
 	/**
 	 * default level 1
 	 *
-	 * @param message 需要发送的消息
+	 * @param carrier 需要发送的消息
 	 */
-	void sendMessage(Message message);
+	void sendMessage(Carrier carrier);
 
 	/**
 	 *
-	 * @param message 需要发送的消息体
+	 * @param carrier 需要发送的消息体
 	 * @param level 必须大于1，不然以默认1论
 	 */
-	void sendMessageAtLevel(Message message,int level);
+	void sendMessageAtLevel(Carrier carrier, int level);
 
 	/**
 	 * default level 1;
